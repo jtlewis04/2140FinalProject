@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="10" height="15" tilewidth="50" tileheight="50" infinite="0" nextlayerid="6" nextobjectid="18">
+ <tileset firstgid="1" name="galaga_tiles" tilewidth="50" tileheight="50" tilecount="2" columns="0">
+  <grid orientation="orthogonal" width="1" height="1"/>
+  <tile id="0">
+   <image width="50" height="50" source="Galaga_PNGs/enemy.png"/>
+  </tile>
+  <tile id="1">
+   <image width="50" height="50" source="Galaga_PNGs/fighter.png"/>
+  </tile>
+ </tileset>
+ <imagelayer id="2" name="background" locked="1">
+  <image source="Galaga_PNGs/background.png" width="500" height="750"/>
+ </imagelayer>
+ <objectgroup id="3" name="enemy_spawnpoints">
+  <object id="7" x="0" y="0" width="50" height="50"/>
+  <object id="13" x="150" y="0" width="50" height="50"/>
+  <object id="15" x="350" y="0" width="50" height="50"/>
+  <object id="9" x="50" y="0" width="50" height="50"/>
+  <object id="12" x="200" y="0" width="50" height="50"/>
+  <object id="16" x="400" y="0" width="50" height="50"/>
+  <object id="10" x="100" y="0" width="50" height="50"/>
+  <object id="14" x="300" y="0" width="50" height="50"/>
+  <object id="11" x="250" y="0" width="50" height="50"/>
+  <object id="17" x="450" y="0" width="50" height="50"/>
+ </objectgroup>
+ <objectgroup id="4" name="game_borders">
+  <object id="2" name="player_enemy_divider" x="0" y="700">
+   <polyline points="499.857,12.9092 500.293,49.4521 0.0726545,50.0957 -0.666667,-0.333333 498.784,-1.09577"/>
+  </object>
+ </objectgroup>
+</map>
