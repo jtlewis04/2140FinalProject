@@ -7,17 +7,17 @@ import arcade
 # --- Explosion Particles Related
 
 # How fast the particle will accelerate down. Make 0 if not desired
-PARTICLE_GRAVITY = 0.05
+PARTICLE_GRAVITY = 0.045
 
 # How fast to fade the particle
-PARTICLE_FADE_RATE = 8
+PARTICLE_FADE_RATE = 9
 
 # How fast the particle moves. Range is from 2.5 <--> 5 with 2.5 and 2.5 set.
-PARTICLE_MIN_SPEED = 2.5
-PARTICLE_SPEED_RANGE = 2.5
+PARTICLE_MIN_SPEED = 3.0
+PARTICLE_SPEED_RANGE = 3.0
 
 # How many particles per explosion
-PARTICLE_COUNT = 20
+PARTICLE_COUNT = 25
 
 # How big the particle
 PARTICLE_RADIUS = 3
@@ -30,19 +30,19 @@ PARTICLE_COLORS = [arcade.color.ALIZARIN_CRIMSON,
                    arcade.color.DARK_TANGERINE]
 
 # Chance we'll flip the texture to white and make it 'sparkle'
-PARTICLE_SPARKLE_CHANCE = 0.02
+PARTICLE_SPARKLE_CHANCE = 0.05
 
 # --- Smoke
 # Start scale of smoke, and how fast is scales up
 SMOKE_START_SCALE = 0.25
-SMOKE_EXPANSION_RATE = 0.03
+SMOKE_EXPANSION_RATE = 0.04
 
 # Rate smoke fades, and rises
-SMOKE_FADE_RATE = 7
-SMOKE_RISE_RATE = 0.5
+SMOKE_FADE_RATE = 8
+SMOKE_RISE_RATE = 0.3
 
 # Chance we leave smoke trail
-SMOKE_CHANCE = 0.25
+SMOKE_CHANCE = 0.4
 
 
 class Smoke(arcade.SpriteCircle):

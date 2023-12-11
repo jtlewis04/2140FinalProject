@@ -2,6 +2,7 @@ import time
 import random
 import subprocess
 import sys
+# Try and install arcade if user hasn't already
 try:
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'arcade'])
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'pathlib'])   
