@@ -69,7 +69,7 @@ class HumanVsAiView(arcade.View):
         self.last_shot = time.time()
         # Time at which last missile was fired by AI player
         self.last_shot_ai = time.time()
-        # List of enemies shot by AI #2
+        # List of enemies shot by AI #3/4
         self.enemies_shot = []
         # Wave number, larger numbers are more difficult
         self.wave = 0
