@@ -1,9 +1,18 @@
-import arcade
-import pathlib
-import math
-import explosion as ex
 import time
 import random
+import subprocess
+import sys
+try:
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'arcade'])
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'pathlib'])   
+    print(f'Successfully installed libraries')
+except subprocess.CalledProcessError as e:
+    print(f'Error installing libraries: {e}')
+
+import arcade
+import pathlib
+import explosion as ex
+
 # Constants
 SCREEN_WIDTH = 500
 SCREEN_HEIGHT = 750
@@ -24,7 +33,7 @@ class Enemy(arcade.Sprite):
         super().__init__(ASSETS_PATH+'/enemy.png')  # Replace with your player sprite file
         self.center_x = spawn_x
         self.center_y = spawn_y
-        self.change_y = -2
+        self.change_y = -1.5
     
     
 
@@ -55,12 +64,20 @@ class HumanVsAiView(arcade.View):
         self.last_shot = time.time()
         # Time at which last missile was fired by AI player
         self.last_shot_ai = time.time()
+        # List of enemies shot by AI #2
+        self.enemies_shot = []
         # Wave number, larger numbers are more difficult
         self.wave = 0
         # Tied to wave difficulty
         self.enemies_per_y = 1
+        # Is the AI moving to its target?
+        self.finding_target = False
         # Is the game over?
         self.game_over = 0
+        #Counter for level 2 AI
+        self.counter = 0
+        #Target list for level 4 AI
+        self.ai_targets = []
         # How long since player blew up, allows for explosion to finish before quitting
         self.time_since_game_over = 0
         self.setup()
@@ -114,6 +131,8 @@ class HumanVsAiView(arcade.View):
 
 
     def on_update(self, delta_time):
+        if self.wave == 13:
+            self.game_over = 2
         # Check for game_over state
         if not self.game_over or self.time_since_game_over + 2 > time.time():
             # Ensure player stays within game bounds
@@ -134,6 +153,77 @@ class HumanVsAiView(arcade.View):
                     self.ai_player.center_x = random.randint(0,9) * 50 + 625
                     missiles.append(Missile(self.ai_player.center_x,self.ai_player.center_y+50))
                     self.last_shot_ai = time.time()
+            #Level 2 AI, shoot every 50 pixels back and forth
+            elif self.wave < 6:
+                if self.last_shot_ai + 0.35 < time.time():
+                    self.ai_player.center_x = self.counter * 50 + 625
+                    missiles.append(Missile(self.ai_player.center_x,self.ai_player.center_y+50))
+                    self.last_shot_ai = time.time()
+                    if self.counter == 0:
+                        self.counter_adder = 1
+                    elif self.counter == 9:
+                        self.counter_adder = -1
+                    self.counter += self.counter_adder
+                    
+
+            #Level 3 AI, shoot lowest enemy
+            elif self.wave < 9:
+                # Find lowest y-value enemy and manuever to shoot it
+                if len(enemies) > 0 and not self.game_over:
+                    first = True
+                    for enemy in enemies:
+                        # If enemy is in AI's game, has a y lower than lowest_y, hasn't already been shot at, and AI isn't currently
+                        # moving to an enemy, enemy becomes lowest_y
+                        # if enemy.center_y < self.lowest_y_pos[1] and enemy.center_x > 500 and not (enemy in self.enemies_shot)\
+                        #     and enemy.center_y < 750 and not self.finding_target:
+                        if enemy.center_y < 750 and enemy.center_x > 500:
+                            if first:
+                                self.lowest_y = enemy
+                                first = False
+                            elif enemy.center_y <= self.lowest_y.center_y and not (enemy in self.enemies_shot):
+                                self.lowest_y = enemy
+                    # lowest y is now enemy with lowest y position
+                    self.lowest_y_pos = self.lowest_y.position
+                    
+                    # If AI player is to the left of enemy, move to the right
+                    # If AI player is to the right of enemy, move to the left
+                    # If AI player is underneath an enemy's hitbox, fire once then ignore that enemy
+                    if self.ai_player.center_x < self.lowest_y_pos[0]-10:
+                        self.ai_player.change_x = 5
+                        self.finding_target = True
+                    elif self.ai_player.center_x > self.lowest_y_pos[0]+10:
+                        self.ai_player.change_x = -5
+                        self.finding_target = True
+                    elif not (self.lowest_y in self.enemies_shot):
+                        self.ai_player.change_x = 0
+                        missiles.append(Missile(self.ai_player.center_x,self.ai_player.center_y+50))
+                        self.enemies_shot.append(self.lowest_y)
+                        self.finding_target = False
+                    self.ai_player.update()
+            # Level 4 AI, shoots at all enemies, prioritizing lower ones
+            elif self.wave <= 12:
+                if len(enemies) > 0 and not self.game_over:
+                    ai_enemies = []
+                    # Gather all enemies on AI's game
+                    for enemy in enemies:
+                        if enemy.center_y < 750 and enemy.center_x > 500:
+                            ai_enemies.append(enemy)
+                    ai_enemies.sort(key= lambda x: x.center_y)
+                    ai_enemies = list(filter(lambda e: not (e in self.enemies_shot),ai_enemies))
+                    for enemy in ai_enemies:
+                        if self.ai_player.center_x >= enemy.center_x-10 and self.ai_player.center_x <= enemy.center_x+10:
+                            missiles.append(Missile(self.ai_player.center_x,self.ai_player.center_y+50))
+                            self.enemies_shot.append(enemy)
+                    ai_enemies = list(filter(lambda e: not (e in self.enemies_shot),ai_enemies))
+                    if len(ai_enemies) > 0:
+                        if self.ai_player.center_x < ai_enemies[0].center_x-10:
+                                self.ai_player.change_x = 4
+                        elif self.ai_player.center_x > ai_enemies[0].center_x+10:
+                                self.ai_player.change_x = -4
+                        self.ai_player.update()
+                    
+                
+
 
 
             # No enemies means the wave has been beaten, so move onto next wave and spawn the enemies
@@ -142,14 +232,15 @@ class HumanVsAiView(arcade.View):
                 # Ramp the difficulty by increasing enemies per why every 3 waves
                 if self.wave % 3 == 0:
                     self.enemies_per_y  += 1
-                # Spawn 6 + (2 * wave# % 3) * enemies_per_y enemies per wave
-                for y in range(6+ 2*(self.wave%3)):
+                # Spawn 3 + (2 * wave# % 3) * enemies_per_y enemies per wave
+                for y in range(3+ 2*(self.wave%3)):
                     for x in range(self.enemies_per_y):
                         # Split the screen width depending on the enemies per y, spawning one enemy in each section
                         spawn_x = random.randrange(10*x//self.enemies_per_y, 10*(x+1)//self.enemies_per_y) * 50 + 25
                         spawn_x_ai = spawn_x+600
                         # every 200 pixels is a new y level
                         enemies.extend([Enemy(spawn_x,SCREEN_HEIGHT+200*y),Enemy(spawn_x_ai,SCREEN_HEIGHT+200*y)])
+                        # enemies.extend([Enemy(spawn_x_ai,SCREEN_HEIGHT+200*y)]) # AI enemies only for testing
                         
 
             # If enemy and missile are colliding, destroy them both, create explosion
@@ -159,8 +250,9 @@ class HumanVsAiView(arcade.View):
                     if enemy.collides_with_sprite(missile):
                         enemy.kill()
                         missile.kill()
-                        # Increase score
-                        self.score += 10
+                        # If a player kill, increase score
+                        if enemy.center_x <= 500:
+                            self.score += 10
                         # Make an explosion
                         for i in range(ex.PARTICLE_COUNT):
                             explosions_list = self.scene.get_sprite_list('explosions')
@@ -217,6 +309,7 @@ class HumanVsAiView(arcade.View):
                 self.scene.get_sprite_list('missiles').append(Missile(self.player.center_x,self.player.center_y+50))
                 self.last_shot = time.time()
         elif key == arcade.key.ESCAPE:
+            #Pause and quit to menu
             title_view = TitleView(self)
             self.window.set_size(480,710)
             self.window.show_view(title_view)
@@ -276,7 +369,7 @@ class TitleView(arcade.View):
         # Show instructions if I is pressed
         if self.showing_instructions:
             arcade.draw_text(
-                "Movement:",
+                "Controls:",
                 start_x=30,
                 start_y=300,
                 color=arcade.color.FLORAL_WHITE,
@@ -289,13 +382,22 @@ class TitleView(arcade.View):
                 "   - SPACE to shoot", start_x=30, start_y=240, color=arcade.color.FLORAL_WHITE, font_size=20
             )
             arcade.draw_text(
-                "Gain score for each enemy destroyed", start_x=30, start_y=210, color=arcade.color.FLORAL_WHITE, font_size=20
+                "   - ESC to pause and quit to title", start_x=30, start_y=210, color=arcade.color.FLORAL_WHITE, font_size=20
             )
             arcade.draw_text(
-                "ESC to pause and quit to title", start_x=30, start_y=180, color=arcade.color.FLORAL_WHITE, font_size=20
+                "Gain score for each enemy destroyed", start_x=30, start_y=180, color=arcade.color.FLORAL_WHITE, font_size=20
             )
             arcade.draw_text(
-                "           Press ESC to return", start_x=30, start_y=150, color=arcade.color.RED, font_size=20
+                "Lvl of the AI increases every 3 waves", start_x=30, start_y=150, color=arcade.color.FLORAL_WHITE, font_size=20
+            )
+            arcade.draw_text(
+                "Goal", start_x=30, start_y=120, color=arcade.color.FLORAL_WHITE, font_size=20
+            )
+            arcade.draw_text(
+                "   - Survive all 4 levels of AI", start_x=30, start_y=90, color=arcade.color.FLORAL_WHITE, font_size=20
+            )
+            arcade.draw_text(
+                "           Press ESC to return", start_x=30, start_y=60, color=arcade.color.RED, font_size=20
             )
             
         # Show start if not blinking out
@@ -391,30 +493,39 @@ class GameOverView(arcade.View):
             texture=self.title_image,
         )
         if self.game_over == 2:
-            arcade.draw_text(
-                        f"     You Beat The AI!",
-                        start_x=30,
-                        start_y=335,
-                        color=arcade.color.MINT_GREEN,
-                        font_size=30,
-                    )
+            if self.wave/3+1 < 4:
+                arcade.draw_text(
+                            f"   You Beat The Lvl {self.wave//3+1} AI!",
+                            start_x=30,
+                            start_y=335,
+                            color=arcade.color.MINT_GREEN,
+                            font_size=26,
+                        )
+            else:
+                arcade.draw_text(
+                            f"     You Survived Every AI!",
+                            start_x=30,
+                            start_y=335,
+                            color=arcade.color.MINT_GREEN,
+                            font_size=26,
+                        )
         else:
             arcade.draw_text(
-                        f"         The AI Wins...",
+                        f"        The Lvl {self.wave//3+1} AI Wins...",
                         start_x=30,
                         start_y=335,
                         color=arcade.color.RED_DEVIL,
-                        font_size=30,
+                        font_size=26,
                     )
         arcade.draw_text(
-                    f"                  Score: {self.score}",
+                    f"                 Score: {self.score}",
                     start_x=30,
                     start_y=250,
                     color=arcade.color.FLORAL_WHITE,
                     font_size=22,
                 )
         arcade.draw_text(
-                    f"                  Wave: {self.wave}",
+                    f"                 Wave: {self.wave}",
                     start_x=30,
                     start_y=290,
                     color=arcade.color.FLORAL_WHITE,
