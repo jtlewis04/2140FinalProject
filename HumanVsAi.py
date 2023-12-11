@@ -197,7 +197,7 @@ class HumanVsAiView(arcade.View):
                     self.last_shot_ai = time.time()
             #Level 2 AI, shoot every 50 pixels back and forth
             elif self.wave < 6:
-                if self.last_shot_ai + 0.35 < time.time():
+                if self.last_shot_ai + 0.32 < time.time():
                     self.ai_player.center_x = self.counter * 50 + 625
                     missiles.append(Missile(self.ai_player.center_x,self.ai_player.center_y+50))
                     self.last_shot_ai = time.time()
