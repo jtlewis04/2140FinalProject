@@ -27,7 +27,6 @@ class Player(arcade.Sprite):
         self.center_x = center_x
         self.center_y = 25
         
-
 class Enemy(arcade.Sprite):
     def __init__(self,spawn_x, spawn_y):
         super().__init__(ASSETS_PATH+'/enemy.png')  # Replace with your player sprite file
@@ -35,8 +34,6 @@ class Enemy(arcade.Sprite):
         self.center_y = spawn_y
         self.change_y = -1.5
     
-    
-
 class Missile(arcade.Sprite):
     def __init__(self,spawn_x, spawn_y):
         super().__init__(ASSETS_PATH+'/missile.png')  # Replace with your player sprite file
@@ -124,11 +121,19 @@ class HumanVsAiView(arcade.View):
         # Draw the scene
         self.scene.draw()
 
-        #Render the Score text
+        # Render the Score text
         arcade.draw_text(f"Score: {self.score}", 10, SCREEN_HEIGHT - 25, arcade.color.WHITE, 20)
-        #Render the Wave text
+        # Render the Wave text
         arcade.draw_text(f"Wave: {self.wave}", 380, SCREEN_HEIGHT - 25, arcade.color.WHITE, 20)
-
+        # Render the AI Level text
+        if self.wave//3+1 == 1:
+            arcade.draw_text(f"Lvl {self.wave//3+1} AI: Random Shooting", 620, SCREEN_HEIGHT - 25, arcade.color.WHITE, 20)
+        elif self.wave//3+1 == 2:
+            arcade.draw_text(f"Lvl {self.wave//3+1} AI: Sweep", 620, SCREEN_HEIGHT - 25, arcade.color.WHITE, 20)
+        elif self.wave//3+1 == 3:
+            arcade.draw_text(f"Lvl {self.wave//3+1} AI: Lowest Enemy First", 620, SCREEN_HEIGHT - 25, arcade.color.WHITE, 20)
+        elif self.wave//3+1 == 4:
+            arcade.draw_text(f"Lvl {self.wave//3+1} AI: Sharpshooter", 620, SCREEN_HEIGHT - 25, arcade.color.WHITE, 20) 
 
     def on_update(self, delta_time):
         if self.wave == 13:
